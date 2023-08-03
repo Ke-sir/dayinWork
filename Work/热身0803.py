@@ -2,6 +2,7 @@ from sanic import Sanic
 from motor.motor_asyncio import AsyncIOMotorClient
 from typing import Optional
 from pydantic import BaseModel
+import bson
 
 
 class Response(BaseModel):
@@ -27,19 +28,19 @@ class Database:
         return Result(json_data=books)
 
     async def read_by_id(self, book_id):
-        book = await self.collection.find_one({'_id': book_id})
+        book = await self.collection.find_one({'_id': bson.ObjectId(book_id)})
         return Result(json_data=book)
 
     async def update(self, book_data):
         book_id = book_data['_id']
-        result = await self.collection.update_one({'_id': book_id}, {'$set': book_data})
+        result = await self.collection.update_one({'_id':  bson.ObjectId(book_id)}, {'$set': book_data})
         if result.modified_count == 1:
             return Response(message='图书更新成功')
         else:
             return Response(message='没找到书')
 
     async def delete(self, book_id):
-        result = await self.collection.delete_one({'_id': book_id})
+        result = await self.collection.delete_one({'_id': bson.ObjectId(book_id)})
         if result.deleted_count == 1:
             return Response(message='图书删除成功')
         else:
